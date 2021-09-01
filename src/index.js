@@ -1,13 +1,14 @@
+require('dotenv').config();
 const express = require('express');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const morgan = require('morgan');
+const path = require('path');
+const cors = require('cors');
 const app = express();
 
 
 const instagramRoute = require('./routes/instagram');
 
-
-dotenv.config();
 
 mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true, 
@@ -19,10 +20,13 @@ mongoose.connect(process.env.MONGO_URL, {
 
 mongoose.Promise = global.Promise;
 
+app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(morgan('dev'));
+app.use('/files', express.static(path.resolve(__dirname, '..', 'temp', 'uploads')));
 
-app.use('/api/instagram', instagramRoute);
+app.use('/api', instagramRoute);
 
 app.listen(3333, () => {
     console.log('Backend is running')
