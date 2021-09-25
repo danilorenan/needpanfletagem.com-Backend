@@ -24,11 +24,16 @@ PostSchema.pre('save', function() {
 });
 
 PostSchema.pre('remove', function() {
-    if (process.env.STORAGE_TYPE == 's3') {
+    if (process.env.STORAGE_TYPE === 's3') {
         return s3.deleteObject({
             Bucket: 'needpanfleto',
             Key: this.key,
-        }).promise()
+        }).promise().then(response => {
+            console.log(response.status)
+        })
+        .catch(response => {
+            console.log(response.status)
+        })
     } else {
         return promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'temp', 'uploads', this.key))
     }

@@ -1,8 +1,10 @@
 const router = require('express').Router();
 const Post = require('../models/Instagram');
 const Weekpost = require('../models/Weekpost');
+const User = require('../models/User');
 const multer = require('multer');
 const multerConfig = require('../config/multer');
+const bcrypt = require('bcrypt');
 
 router.get('/posts', async (req, res) => {
     const posts = await Post.find();
@@ -59,7 +61,44 @@ router.delete('/weekposts/:id', async (req, res) => {
 })
 
 
+//---------------------USER-----------------//
 
+router.get('/user', async (req, res) => {
+    const users = await User.find();
+
+    return res.json(users)
+})
+
+router.post('/user', async (req, res) => {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(req.body.password, salt)
+    const users = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        password: hashedPassword
+    })
+    return res.json(users)
+})
+
+router.post('/login', async(req, res) => {
+    
+        const user = await User.findOne({email:req.body.email})
+        
+        if (user == null){
+            return res.json('Senha ou email não cadastrado')
+        }
+        try {
+            if(await bcrypt.compare(req.body.password, user.password)){
+                return res.send('Success')
+            }else{
+                return res.send('Not allowed')
+            }
+        }catch (err) {
+            res.json(err)
+            console.log(err)
+        }
+
+})
 
 
 module.exports = router;
